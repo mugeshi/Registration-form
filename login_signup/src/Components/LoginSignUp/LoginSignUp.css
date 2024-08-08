@@ -97,3 +97,8 @@ button:hover {
 .forgot-password-link:hover {
   text-decoration: underline;
 }
+.error {
+  color: #d9534f;
+  font-size: 14px;
+  margin-top: 5px;
+}
