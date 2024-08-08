@@ -1,12 +1,18 @@
+import secrets
 from flask import Flask, request, jsonify
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
 #Initialize the Flask application
-app= Flask(_name_)
+app = Flask(__name__) 
+
+#@app.route('/')
+#def home():
+ #   return 'Hello, World!'
+
 
 #Generate a random secrete key for session management
-app.config['SECRETE_KEY'] =  secrets.token_hex(32) # Generate a 64-character hexadecimal string
+app.config['SECRET_KEY'] = secrets.token_hex(32)# Generate a 64-character hexadecimal string
 
 
 #Configure the sqlalchemy part of the app instance
@@ -28,8 +34,9 @@ class User(db.Model):
 
 
 
-# Create the database and the User table
-db.create_all()
+# Create the database and the User table inside an application context
+with app.app_context():
+    db.create_all()
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -50,6 +57,23 @@ def signup():
 
     # Return a success message as JSON with a 201 status code
     return jsonify({'message': 'User created successfully'}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    # Query the User table for a user with the provided email
+    user = User.query.filter_by(email=data['email']).first()
+    # Check if the user exists and if the password matches
+    if user and bcrypt.check_password_hash(user.password, data['password']):
+        # Return a success message as JSON with a 200 status code
+        return jsonify({'message': 'Login successful'}), 200
+    else:
+        # Return an error message as JSON with a 401 status code
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+if __name__ == '__main__':
+    # Run the Flask app in debug mode
+    app.run(debug=True)
 
 
 
